@@ -1,0 +1,38 @@
+name: "The Emperor's Imperial Seal"
+author: "AdwaCTF"
+category: forensics
+description: |-
+  A courier galloping south from Emperor Menelik's war camp carried an embroidered
+  woodcut banner depicting the Imperial Seal of Ethiopia (Moa Anbessa).
+  
+  Italian border sentries inspected the parchment but found only an artistic
+  rendering of the imperial tricolor and motto. However, our intelligence
+  officers suspect the courier concealed a secret imperial decree inside the file.
+  
+  Analyze the image structures to carve out the hidden proclamation and recover the flag.
+  
+  Flag format: `AdwaCTF{...}`
+value: 200
+type: dynamic
+flags:
+  - AdwaCTF{m04_4nb3554_z31mn3g3d3_y1hud4}
+tags:
+  - easy-medium
+  - forensics
+  - steganography
+  - file-carving
+  - dynamic-flag
+files:
+  - output/imperial_seal.png
+  - output/courier_dossier.txt
+generator:
+  enabled: true
+  image: "ghcr.io/azariyasmekonen/emperors-imperial-seal:latest"
+  output_filename: "imperial_seal.png"
+  timeout: 30
+  cache_ttl: 72
+hints:
+  - content: "Examine the file structure past the standard PNG 'IEND' chunk. Standard utilities like binwalk, foremost, or a hex editor can carve appended archives."
+    cost: 20
+state: visible
+version: "0.1"
