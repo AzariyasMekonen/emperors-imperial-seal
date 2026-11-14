@@ -7,9 +7,11 @@ description: |-
   
   Italian border sentries inspected the parchment but found only an artistic
   rendering of the imperial tricolor and motto. However, our intelligence
-  officers suspect the courier concealed a secret imperial decree inside the file.
+  officers suspect the courier concealed a secret imperial decree inside the file
+  using dual-layered steganographic techniques.
   
-  Analyze the image structures to carve out the hidden proclamation and recover the flag.
+  Carve out the hidden container past the image boundary, recover the imperial passkey
+  concealed within the pixel raster, and decipher the Emperor's proclamation.
   
   Flag format: `AdwaCTF{...}`
 value: 200
@@ -21,6 +23,7 @@ tags:
   - forensics
   - steganography
   - file-carving
+  - lsb
   - dynamic-flag
 files:
   - output/imperial_seal.png
@@ -32,7 +35,9 @@ generator:
   timeout: 30
   cache_ttl: 72
 hints:
-  - content: "Examine the file structure past the standard PNG 'IEND' chunk. Standard utilities like binwalk, foremost, or a hex editor can carve appended archives."
+  - content: "Examine the file structure past the standard PNG 'IEND' chunk. Standard utilities like binwalk, foremost, or a hex editor can carve the appended archive."
     cost: 20
+  - content: "The carved decree is encrypted. Inspect the least significant bits (LSB) of the Red channel in the PNG image raster (using zsteg, StegSolve, or Python) to recover the IMPERIAL_PASSKEY."
+    cost: 40
 state: visible
-version: "0.1"
+version: "0.2"

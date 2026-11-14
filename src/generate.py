@@ -2,20 +2,28 @@
 """
 On-Demand Dynamic Challenge File Generator for The Emperor's Imperial Seal (AdwaCTF).
 
+Dual-layered forensics:
+  1. Pixel Raster LSB (Red channel): holds IMPERIAL_PASSKEY=MOA_ANBESSA_1888
+  2. Appended Container (past PNG IEND): ZIP archive containing XOR-encrypted proclamation
+     requiring the raster passkey to decipher.
+
 Environment variables:
   - FLAG: Dynamic participant-specific flag (e.g. 'AdwaCTF{...}')
   - USER_ID: Optional participant or team identifier
-  - OUTPUT_FILENAME: Output file name (default: 'imperial_seal.png')
+  - OUTPUT_FILENAME: Primary output file name (default: 'imperial_seal.png')
   - OUTPUT_DIR: Target directory to write to (default: 'output' or '/output')
 """
 
+import io
 import os
 import sys
-import io
 import zipfile
 from pathlib import Path
 
-def get_flag():
+PASSKEY = b"MOA_ANBESSA_1888"
+
+
+def get_flag() -> str:
     flag = os.environ.get("FLAG", "").strip()
     if flag:
         return flag
@@ -33,9 +41,10 @@ def get_flag():
 
     return "AdwaCTF{m04_4nb3554_z31mn3g3d3_y1hud4}"
 
-def get_base_png():
+
+def get_base_png() -> bytes:
     """
-    Load pre-rendered base seal image containing visual art and Red-channel LSB hint.
+    Load pre-rendered base seal image containing visual art and Red-channel LSB passkey.
     Falls back to dynamic PIL rendering if Pillow is available and base image is missing.
     """
     src_dir = Path(__file__).resolve().parent
@@ -48,13 +57,11 @@ def get_base_png():
         if p.is_file():
             try:
                 data = p.read_bytes()
-                # Verify standard PNG header
                 if data.startswith(b"\x89PNG\r\n\x1a\n"):
                     return data
             except OSError:
                 pass
 
-    # Fallback to rendering via PIL if installed
     try:
         from PIL import Image, ImageDraw
 
@@ -74,20 +81,20 @@ def get_base_png():
         draw.text((90, 290), "BATTLE OF ADWA - YEKATIT 1888", fill=(80, 40, 20))
         draw.text((140, 330), "EMPEROR MENELIK II", fill=(100, 50, 25))
 
-        # Red-channel LSB hint
-        hint = "LSB_KEY: Carve the appended zip archive past the IEND marker!\x00"
-        hint_bits = []
-        for c in hint:
+        # Red-channel LSB: passkey
+        passkey_str = f"IMPERIAL_PASSKEY={PASSKEY.decode()}\x00"
+        bits = []
+        for c in passkey_str:
             for b in range(8):
-                hint_bits.append((ord(c) >> b) & 1)
+                bits.append((ord(c) >> b) & 1)
 
         pixels = img.load()
         bit_idx = 0
         for y in range(height):
             for x in range(width):
-                if bit_idx < len(hint_bits):
+                if bit_idx < len(bits):
                     r, g, b = pixels[x, y]
-                    r = (r & ~1) | hint_bits[bit_idx]
+                    r = (r & ~1) | bits[bit_idx]
                     pixels[x, y] = (r, g, b)
                     bit_idx += 1
 
@@ -96,6 +103,7 @@ def get_base_png():
         return buf.getvalue()
     except ImportError:
         raise RuntimeError("No base_seal.png found and Pillow is not installed.")
+
 
 def main():
     flag = get_flag()
@@ -128,12 +136,11 @@ def main():
 
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Base PNG bytes
+    # 1. Base PNG bytes (contains LSB IMPERIAL_PASSKEY in Red channel)
     raw_png = get_base_png()
 
-    # 2. Dynamic ZIP archive with secret proclamation and participant's flag
-    zip_buf = io.BytesIO()
-    proclamation_content = (
+    # 2. Dynamic proclamation plaintext
+    proclamation_plaintext = (
         f"IMPERIAL WAR PROCLAMATION (KITET AWAJ)\n"
         f"Issued by His Imperial Majesty Atse Menelik II, King of Kings of Ethiopia:\n"
         f"Courier Verification ID: {user_id}\n\n"
@@ -142,11 +149,37 @@ def main():
         f"Royal Order Clearance Flag:\n"
         f"{flag}\n"
     )
+
+    # 3. XOR encipher proclamation with PASSKEY
+    enc_bytes = bytes(
+        b ^ PASSKEY[i % len(PASSKEY)]
+        for i, b in enumerate(proclamation_plaintext.encode("utf-8"))
+    )
+    hex_ciphertext = enc_bytes.hex()
+
+    # Content of imperial_proclamation.txt inside the carved ZIP
+    carved_file_content = (
+        f"===============================================================================\n"
+        f"IMPERIAL WAR PROCLAMATION (KITET AWAJ) - ENCRYPTED ARCHIVE\n"
+        f"COURIER REGISTRATION: {user_id}\n"
+        f"===============================================================================\n\n"
+        f"NOTICE TO COURIER:\n"
+        f"This imperial decree has been enciphered by the Royal Scribes of Emperor Menelik II.\n"
+        f"The decryption key is the IMPERIAL_PASSKEY embedded within the least significant\n"
+        f"bits (LSB) of the seal's visual image raster (Red channel).\n\n"
+        f"To decipher:\n"
+        f"  plaintext = XOR(hex_decode(CIPHERTEXT), imperial_passkey)\n\n"
+        f"CIPHERTEXT (HEX):\n"
+        f"{hex_ciphertext}\n"
+        f"===============================================================================\n"
+    )
+
+    zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("imperial_proclamation.txt", proclamation_content)
+        zf.writestr("imperial_proclamation.txt", carved_file_content)
     raw_zip = zip_buf.getvalue()
 
-    # Concatenate PNG + ZIP payload (Forensic file carving challenge)
+    # Concatenate PNG + ZIP payload (Forensic file carving)
     final_data = raw_png + raw_zip
 
     # Companion intelligence dossier
@@ -159,16 +192,17 @@ def main():
         "HISTORICAL INCIDENT REPORT:\n"
         "A swift royal messenger riding from Emperor Menelik II's headquarters camp at\n"
         "Adwa was intercepted near the Italian lines at Mount Raio. The messenger carried\n"
-        "an illuminated parchment depicting the Imperial Lion of Judah and the tri-color\n"
-        "standard.\n\n"
+        "an illuminated parchment depicting the Imperial Seal of Ethiopia (Moa Anbessa)\n"
+        "and the tri-color standard.\n\n"
         "General Baratieri's intelligence officers examined the image visually but failed\n"
         "to discover any legible battle plans.\n\n"
         "However, our undercover scouts inside the colonial camp report that the document\n"
         "contains dual-layered cryptographic hiding techniques:\n"
-        "  1. A low-order channel signal embedded within the pixel raster itself.\n"
+        "  1. A low-order channel signal embedded within the pixel raster itself (LSB).\n"
         "  2. An encrypted secondary payload container concealed beyond the boundary\n"
-        "     of the standard visual image container.\n\n"
-        "RECOVER THE EMPEROR'S SECRET WAR PROCLAMATION AND EXTRACT THE ROYAL FLAG!\n"
+        "     of the standard visual image container (file carving).\n\n"
+        "Both layers must be analyzed: carve the concealed container and extract the raster\n"
+        "passkey to decrypt the Emperor's secret proclamation!\n"
         "===============================================================================\n"
     )
 
@@ -178,7 +212,6 @@ def main():
     if Path("/output").is_dir():
         dirs_to_write.add(Path("/output"))
 
-    # Only write to local output/ if no custom output directory was set via env or args
     if (here / "output").is_dir() and not env_dir and not output_path and len(sys.argv) <= 1:
         dirs_to_write.add(here / "output")
 
@@ -203,7 +236,6 @@ def main():
         except OSError:
             pass
 
-    # Also keep dist/ updated if present and no custom target was forced
     if (here / "dist").is_dir() and not env_dir and not output_path and len(sys.argv) <= 1:
         try:
             with open(here / "dist" / "imperial_seal.png", "wb") as f:
@@ -217,6 +249,7 @@ def main():
     print(f"[generator] target_dir={target_dir}")
     print(f"[generator] generated output files: {target_seal_name}, courier_dossier.txt")
     print(f"[generator] total size={len(final_data)} bytes (PNG={len(raw_png)}, ZIP={len(raw_zip)})")
+
 
 if __name__ == "__main__":
     main()

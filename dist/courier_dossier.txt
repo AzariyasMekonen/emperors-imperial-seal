@@ -7,17 +7,18 @@ COURIER REGISTRATION: imperial_courier_adwa
 HISTORICAL INCIDENT REPORT:
 A swift royal messenger riding from Emperor Menelik II's headquarters camp at
 Adwa was intercepted near the Italian lines at Mount Raio. The messenger carried
-an illuminated parchment depicting the Imperial Lion of Judah and the tri-color
-standard.
+an illuminated parchment depicting the Imperial Seal of Ethiopia (Moa Anbessa)
+and the tri-color standard.
 
 General Baratieri's intelligence officers examined the image visually but failed
 to discover any legible battle plans.
 
 However, our undercover scouts inside the colonial camp report that the document
 contains dual-layered cryptographic hiding techniques:
-  1. A low-order channel signal embedded within the pixel raster itself.
+  1. A low-order channel signal embedded within the pixel raster itself (LSB).
   2. An encrypted secondary payload container concealed beyond the boundary
-     of the standard visual image container.
+     of the standard visual image container (file carving).
 
-RECOVER THE EMPEROR'S SECRET WAR PROCLAMATION AND EXTRACT THE ROYAL FLAG!
+Both layers must be analyzed: carve the concealed container and extract the raster
+passkey to decrypt the Emperor's secret proclamation!
 ===============================================================================
