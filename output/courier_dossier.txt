@@ -1,24 +1,16 @@
 ===============================================================================
 IMPERIAL COURIER INTELLIGENCE DOSSIER
-RECONNAISSANCE HEADQUARTERS - ADVANCE SOLODA VANTAGE
+RECONNAISSANCE HEADQUARTERS - SOLODA VANTAGE
 COURIER REGISTRATION: imperial_courier_adwa
 ===============================================================================
 
 HISTORICAL INCIDENT REPORT:
-A swift royal messenger riding from Emperor Menelik II's headquarters camp at
-Adwa was intercepted near the Italian lines at Mount Raio. The messenger carried
-an illuminated parchment depicting the Imperial Seal of Ethiopia (Moa Anbessa)
-and the tri-color standard.
+A swift royal messenger was intercepted near the Italian lines at Mount Raio,
+carrying an illuminated parchment of the Imperial Seal of Ethiopia (Moa Anbessa).
 
-General Baratieri's intelligence officers examined the image visually but failed
-to discover any legible battle plans.
+General Baratieri's staff inspected the document and dismissed it as ceremonial art.
+However, our lookouts report that Emperor Menelik's scribes concealed a secret
+imperial decree within the artifact itself.
 
-However, our undercover scouts inside the colonial camp report that the document
-contains dual-layered cryptographic hiding techniques:
-  1. A low-order channel signal embedded within the pixel raster itself (LSB).
-  2. An encrypted secondary payload container concealed beyond the boundary
-     of the standard visual image container (file carving).
-
-Both layers must be analyzed: carve the concealed container and extract the raster
-passkey to decrypt the Emperor's secret proclamation!
+Examine the courier's banner and recover the hidden decree.
 ===============================================================================

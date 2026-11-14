@@ -2,16 +2,11 @@ name: "The Emperor's Imperial Seal"
 author: "AdwaCTF"
 category: forensics
 description: |-
-  A courier galloping south from Emperor Menelik's war camp carried an embroidered
-  woodcut banner depicting the Imperial Seal of Ethiopia (Moa Anbessa).
+  An intercepted parchment depicts the Lion of Judah and the imperial tricolor.
+  The sentries dismissed it as ceremonial art, but the Emperor's couriers
+  never ride with empty banners.
   
-  Italian border sentries inspected the parchment but found only an artistic
-  rendering of the imperial tricolor and motto. However, our intelligence
-  officers suspect the courier concealed a secret imperial decree inside the file
-  using dual-layered steganographic techniques.
-  
-  Carve out the hidden container past the image boundary, recover the imperial passkey
-  concealed within the pixel raster, and decipher the Emperor's proclamation.
+  Look closer—the parchment holds more than ink and thread.
   
   Flag format: `AdwaCTF{...}`
 value: 200
